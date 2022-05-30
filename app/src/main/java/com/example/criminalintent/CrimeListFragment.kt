@@ -1,5 +1,6 @@
 package com.example.criminalintent
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,15 +22,15 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
 
+    private var callbacks: Callbacks? = null
     private lateinit var crimeRecyclerView: RecyclerView
-
     private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
-
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
     }
@@ -40,12 +41,22 @@ class CrimeListFragment : Fragment() {
             viewLifecycleOwner,
             Observer { crimes ->
                 crimes?.let {
-                    Log.i(TAG,"Got crimes ${crimes.size}")
+                    Log.i(TAG, "Got crimes ${crimes.size}")
                     updateUi(crimes)
 
                 }
             }
         )
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks = context as Callbacks?
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
     }
 
     override fun onCreateView(
@@ -93,7 +104,7 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View?) {
-            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
+            callbacks?.onCrimeSelected(crime.id)
         }
     }
 
@@ -111,4 +122,8 @@ class CrimeListFragment : Fragment() {
 
         override fun getItemCount(): Int = crimes.size
     }
+}
+
+interface Callbacks {
+    fun onCrimeSelected(crimeId: UUID)
 }
