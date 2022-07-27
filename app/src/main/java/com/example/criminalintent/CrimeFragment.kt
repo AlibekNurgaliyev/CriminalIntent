@@ -11,12 +11,14 @@ import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import java.text.SimpleDateFormat
 import java.util.*
 
-class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
+    private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
@@ -46,9 +48,15 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         }
 
         dateButton.setOnClickListener {
-            setTargetFragment(this@CrimeFragment, REQUEST_DATE)
             DatePickerFragment.newInstance(date = crime.date).apply {
+            setTargetFragment(this@CrimeFragment, REQUEST_DATE)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            }
+        }
+        timeButton.setOnClickListener {
+            TimePickerFragment.newInstance(time = crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_TIME)
             }
         }
     }
@@ -68,6 +76,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         val view = inflater.inflate(R.layout.fragment_crime, container, false)
         titleField = view.findViewById(R.id.crime_title) as EditText
         dateButton = view.findViewById(R.id.crime_date_button) as Button
+        timeButton = view.findViewById(R.id.crime_time_button) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved_checkbox) as CheckBox
 
         return view
@@ -77,6 +86,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         private const val TAG = "CrimeFragment"
         private const val ARG_CRIME_ID = "crime_id"
         private const val DIALOG_DATE = "DialogDate"
+        private const val DIALOG_TIME = "DialogTime"
         private const val REQUEST_DATE = 0
 
         fun newInstance(crimeId: UUID): CrimeFragment {
@@ -103,7 +113,9 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 
     private fun updateUI() {
         titleField.setText(crime.title)
-        dateButton.text = crime.date.toString()
+        dateButton.text = SimpleDateFormat("yyyy/MM/dd").format(crime.date)
+        timeButton.text = SimpleDateFormat("HH:mm").format(crime.date.time)
+
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
@@ -117,6 +129,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 
     override fun onDateSelected(date: Date) {
         crime.date = date
+        updateUI()
+    }
+
+    override fun onTimeSelected(date: Date) {
+        crime.date.time = date.time
         updateUI()
     }
 }
