@@ -3,6 +3,7 @@ package com.example.criminalintent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -82,23 +83,6 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         return view
     }
 
-    companion object {
-        private const val TAG = "CrimeFragment"
-        private const val ARG_CRIME_ID = "crime_id"
-        private const val DIALOG_DATE = "DialogDate"
-        private const val DIALOG_TIME = "DialogTime"
-        private const val REQUEST_DATE = 0
-
-        fun newInstance(crimeId: UUID): CrimeFragment {
-            val args = Bundle().apply {
-                putSerializable(ARG_CRIME_ID, crimeId)
-            }
-            return CrimeFragment().apply {
-                arguments = args
-            }
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         crimeDetailViewModel.crimeLiveData.observe(
@@ -122,6 +106,23 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         }
     }
 
+    private fun getCrimeReport(): String {
+        val solvedString = if (crime.isSolved) {
+            getString(R.string.crime_report_solved)
+        } else
+            getString(R.string.crime_report_unsolved)
+
+        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+
+        var suspect = if (crime.suspect.isBlank()) {
+            getString(R.string.crime_report_no_suspect)
+        } else {
+            getString(R.string.crime_report_suspect, crime.suspect)
+        }
+
+        return getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
+    }
+
     override fun onStop() {
         super.onStop()
         crimeDetailViewModel.saveCrime(crime)
@@ -135,5 +136,23 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     override fun onTimeSelected(date: Date) {
         crime.date.time = date.time
         updateUI()
+    }
+
+    companion object {
+        private const val TAG = "CrimeFragment"
+        private const val ARG_CRIME_ID = "crime_id"
+        private const val DIALOG_DATE = "DialogDate"
+        private const val DIALOG_TIME = "DialogTime"
+        private const val REQUEST_DATE = 0
+        private const val DATE_FORMAT = "EEE, MMM, dd"
+
+        fun newInstance(crimeId: UUID): CrimeFragment {
+            val args = Bundle().apply {
+                putSerializable(ARG_CRIME_ID, crimeId)
+            }
+            return CrimeFragment().apply {
+                arguments = args
+            }
+        }
     }
 }
