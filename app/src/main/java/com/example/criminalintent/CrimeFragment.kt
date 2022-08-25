@@ -1,5 +1,6 @@
 package com.example.criminalintent
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -21,6 +22,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     private lateinit var dateButton: Button
     private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
+    private lateinit var reportButton: Button
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
     }
@@ -50,7 +52,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
         dateButton.setOnClickListener {
             DatePickerFragment.newInstance(date = crime.date).apply {
-            setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
             }
         }
@@ -58,6 +60,20 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             TimePickerFragment.newInstance(time = crime.date).apply {
                 setTargetFragment(this@CrimeFragment, REQUEST_DATE)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_TIME)
+            }
+        }
+
+        reportButton.setOnClickListener {
+            Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, getCrimeReport())
+                putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    getString(R.string.crime_report_subject)
+                )
+            }.also { intent ->
+                val chooserIntent = Intent.createChooser(intent, getString(R.string.send_report))
+                startActivity(chooserIntent)
             }
         }
     }
@@ -79,6 +95,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         dateButton = view.findViewById(R.id.crime_date_button) as Button
         timeButton = view.findViewById(R.id.crime_time_button) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved_checkbox) as CheckBox
+        reportButton = view.findViewById(R.id.crime_report) as Button
 
         return view
     }
